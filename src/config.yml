@@ -1,0 +1,17 @@
+#########################
+#####  SimplePerms  #####
+#########################
+
+# SimplePerms is the smallest Permissions plugin available.
+# You can assign permissions to all players by putting it in the following list.
+
+# Example:
+#
+# permissions:
+# - chestsort.use
+# - invunload.unload
+# - invunload.dump
+# - lumberjack.use
+# - angelchest.use
+
+permissions:
