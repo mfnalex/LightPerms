@@ -8,10 +8,9 @@
 # Example:
 #
 # permissions:
+# -	minecraft.command.time
+# - minecraft.command.weather
+# - minecraft.command.tp
 # - chestsort.use
-# - invunload.unload
-# - invunload.dump
-# - lumberjack.use
-# - angelchest.use
 
 permissions:
