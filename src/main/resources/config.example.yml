@@ -1,0 +1,13 @@
+permissions:
+- lightperms.reload
+- chestsort.use
+- chestsort.use.inventory
+- angelchest.use
+- angelchest.xp
+- angelchest.protect
+- invunload.use
+- invunload.search
+- besttools.use
+- besttools.refill
+- lumberjack.use
+- drop2inventory.use

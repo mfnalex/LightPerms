@@ -1,0 +1,11 @@
+main: de.jeff_media.LightPerms.LightPerms
+name: LightPerms
+version: 1.0
+api-version: 1.13
+description: Simple permission plugin.
+author: mfnalex
+prefix: LightPerms
+commands:
+  lp:
+    description: Reloads your permissions file
+    aliases: [lightperms]

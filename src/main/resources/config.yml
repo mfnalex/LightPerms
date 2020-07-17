@@ -1,0 +1,30 @@
+#########################
+#####  LightPerms   #####
+#########################
+
+# LightPerms is the smallest Permissions plugin available.
+# You can assign permissions to all players by putting it in the following list.
+
+# After you have changed this file, just enter /lp to reload it.
+
+# Example:
+#
+# permissions:
+# -	minecraft.command.time
+# - minecraft.command.weather
+# - minecraft.command.tp
+# - chestsort.use
+
+permissions:
+- lightperms.reload
+- chestsort.use
+- chestsort.use.inventory
+- angelchest.use
+- angelchest.xp
+- angelchest.protect
+- invunload.use
+- invunload.search
+- besttools.use
+- besttools.refill
+- lumberjack.use
+- drop2inventory.use
