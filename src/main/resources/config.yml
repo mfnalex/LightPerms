@@ -16,7 +16,6 @@
 # - chestsort.use
 
 permissions:
-- lightperms.reload
 - chestsort.use
 - chestsort.use.inventory
 - angelchest.use
