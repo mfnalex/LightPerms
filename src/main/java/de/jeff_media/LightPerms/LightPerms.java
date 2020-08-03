@@ -5,10 +5,7 @@ import java.util.UUID;
 
 import de.jeff_media.PluginUpdateChecker.PluginUpdateChecker;
 import org.bstats.bukkit.Metrics;
-import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -27,9 +24,10 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 		saveDefaultConfig();
 		updateChecker = new PluginUpdateChecker(this,"https://api.jeff-media.de/lightperms/latest-version.txt","https://www.spigotmc.org/resources/1-8-1-16-lightperms.62447/",null,"https://chestsort.de/donate");
 		updateChecker.check(4*60*60);
-		perms = new HashMap<UUID, PermissionAttachment>();
+		perms = new HashMap<>();
 		getServer().getPluginManager().registerEvents(this, this);
-		getCommand("lp").setExecutor(this);
+		getCommand("lp").setTabCompleter(new TabCompleter());
+		getCommand("lp").setExecutor(new Commands(this));
 
 		addPermsToOnlinePlayers();
 
@@ -44,13 +42,28 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 		}
 	}
 
+	void debug(String text) {
+		getLogger().warning(text);
+	}
+
+
 	public void addPermissions(Player p) {
 		PermissionAttachment attachment = p.addAttachment(this);
-		
-		for(String permission : getConfig().getStringList("permissions")) {
+
+		for(String permission : getConfig().getStringList("default.permissions")) {
 			attachment.setPermission(permission, true);
 		}
-		
+		for(String name : getConfig().getConfigurationSection("users").getKeys(false)) {
+			for(String group : getConfig().getStringList("users."+name+".groups")) {
+				for(String perm : getConfig().getStringList("groups."+group+".permissions")) {
+					attachment.setPermission(perm,true);
+				}
+			}
+			for(String perm : getConfig().getStringList("users."+name+".permissions")) {
+				attachment.setPermission(perm, true);
+			}
+		}
+
 		perms.put(p.getUniqueId(), attachment);
 	}
 
@@ -66,6 +79,12 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 
 	public void onDisable() {
 		updateChecker.stop();
+		removePermissions();
+		saveConfig();
+		HandlerList.unregisterAll((Listener) this);
+	}
+
+	void removePermissions() {
 		for (Player player : getServer().getOnlinePlayers()) {
 			if (player != null) {
 				PermissionAttachment attachment = perms.get(player.getUniqueId());
@@ -74,17 +93,13 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 				}
 			}
 		}
-		HandlerList.unregisterAll((Listener) this);
 	}
 
-	public boolean 	onCommand​(CommandSender sender, Command command, String label, String[] args) {
-
+	void reloadPermissions() {
+		saveConfig();
+		removePermissions();
 		reloadConfig();
-		onDisable();
-		onEnable();
-		sender.sendMessage(ChatColor.GREEN+"Permissions have been reloaded.");
-
-		return true;
+		addPermsToOnlinePlayers();
 	}
 
 }
