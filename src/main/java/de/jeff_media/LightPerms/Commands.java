@@ -14,6 +14,8 @@ import java.util.List;
 
 public class Commands implements CommandExecutor {
 
+    final String header = "§3====[§bLightPerms§3]====";
+
     final LightPerms main;
 
     Commands(LightPerms main) {
@@ -21,18 +23,28 @@ public class Commands implements CommandExecutor {
     }
 
     private boolean addGroup(@NotNull OfflinePlayer p, String arg, CommandSender sender) {
+        sender.sendMessage(header);
         List<String> groups;
-            groups = main.getConfig().getStringList("users." + p.getName() + ".groups");
-            groups.add(arg);
-            main.getConfig().set("users." + p.getName() + ".groups", groups);
-            sender.sendMessage("§2Added player §a" + p.getName() + "§2 to group §a" + arg + "§2.");
-            main.reloadPermissions();
+        groups = main.getConfig().getStringList("users." + p.getName() + ".groups");
+        if(groups.contains(arg)) {
+            sender.sendMessage("§2Player §a"+p.getName()+" already is in group §a"+arg+"§2.");
+            return true;
+        }
+        groups.add(arg);
+        main.getConfig().set("users." + p.getName() + ".groups", groups);
+        sender.sendMessage("§2Added player §a" + p.getName() + "§2 to group §a" + arg + "§2.");
+        main.reloadPermissions();
         return true;
     }
 
     private boolean addGroupPermission(String group, String arg, CommandSender sender) {
+        sender.sendMessage(header);
         List<String> perms;
         perms = main.getConfig().getStringList("groups." + group + ".permissions");
+        if(perms.contains(arg)) {
+            sender.sendMessage("§2Group §a"+group+"§2 already has permission §a"+arg+"§2.");
+            return true;
+        }
         perms.add(arg);
         main.getConfig().set("groups." + group + ".permissions", perms);
         sender.sendMessage("§2Added permission §a" + arg + "§2 to group §a" + group + "§2.");
@@ -41,14 +53,23 @@ public class Commands implements CommandExecutor {
     }
 
     private boolean addPermission(@Nullable OfflinePlayer p, String arg, CommandSender sender) {
+        sender.sendMessage(header);
         List<String> perms;
         if (p == null) {
             perms = main.getConfig().getStringList("default.permissions");
+            if(perms.contains(arg)) {
+                sender.sendMessage("§2Permission §a"+arg+"§2 already is a default permission.");
+                return true;
+            }
             perms.add(arg);
             main.getConfig().set("default.permissions", perms);
             sender.sendMessage("§2Added permission §a" + arg + "§2 to §aall players§2.");
         } else {
             perms = main.getConfig().getStringList("users." + p.getName() + ".permissions");
+            if(perms.contains(arg)) {
+                sender.sendMessage("§2Player §a"+p.getName()+"§2 already has permission §a"+arg+"§2.");
+                return true;
+            }
             perms.add(arg);
             main.getConfig().set("users." + p.getName() + ".permissions", perms);
             sender.sendMessage("§2Added permission §a" + arg + "§2 to player §a" + p.getName() + "§2.");
@@ -100,24 +121,25 @@ public class Commands implements CommandExecutor {
                 return removeGroupPermission(args[0], args[2], sender);
         }
 
-        if(args[1].equalsIgnoreCase("addmember") || args[1].equalsIgnoreCase("removemember")) {
-            @SuppressWarnings("deprecation") @NotNull OfflinePlayer p = Bukkit.getOfflinePlayer(args[0]);
+        if (args[1].equalsIgnoreCase("addmember") || args[1].equalsIgnoreCase("removemember")) {
+            @SuppressWarnings("deprecation") @NotNull OfflinePlayer p = Bukkit.getOfflinePlayer(args[2]);
             if (p == null) {
                 sender.sendMessage("§cCould not find player §4" + args[0] + "§c.");
                 return true;
             }
-            switch(args[1].toLowerCase()) {
+            switch (args[1].toLowerCase()) {
                 case "addmember":
-                    return addGroup(p, args[2], sender);
+                    return addGroup(p, args[0], sender);
                 case "removemember":
-                    return removeGroup(p, args[2], sender);
+                    return removeGroup(p, args[0], sender);
             }
         }
-        usage(sender,"group");
+        usage(sender, "group");
         return true;
     }
 
     private boolean listDefaultPermissions(CommandSender sender) {
+        sender.sendMessage(header);
         sender.sendMessage("§3Default permissions: ");
         for (String perm : main.getConfig().getStringList("default.permissions")) {
             sender.sendMessage("§3- §a" + perm);
@@ -126,6 +148,7 @@ public class Commands implements CommandExecutor {
     }
 
     private boolean listGroupPermissions(String[] args, CommandSender sender) {
+        sender.sendMessage(header);
         sender.sendMessage("§3Group: §a" + args[0]);
         sender.sendMessage("§3Group permissions: ");
         for (String perm : main.getConfig().getStringList("groups." + args[0] + ".permissions")) {
@@ -141,20 +164,26 @@ public class Commands implements CommandExecutor {
     }
 
     private boolean listGroups(CommandSender sender) {
+        sender.sendMessage(header);
         sender.sendMessage("§3Groups:");
         for (String group : main.getConfig().getConfigurationSection("groups").getKeys(false)) {
             int users = 0;
+            int perms = 0;
             for (String user : main.getConfig().getConfigurationSection("users").getKeys(false)) {
                 if (main.getConfig().getStringList("users." + user + ".groups").contains(group)) {
                     users++;
                 }
             }
-            sender.sendMessage("§3- §a" + group + " §3(" + users + " members)");
+            for(String perm : main.getConfig().getStringList("groups."+group+".permissions")) {
+                perms++;
+            }
+            sender.sendMessage("§3- §a" + group + " §3(" + perms+" permissions, "+ users + " members)");
         }
         return true;
     }
 
     private boolean listPermissions(@NotNull OfflinePlayer p, CommandSender sender) {
+        sender.sendMessage(header);
         sender.sendMessage("§3User: §a" + p.getName());
         sender.sendMessage("§3Default permissions: ");
         for (String perm : main.getConfig().getStringList("default.permissions")) {
@@ -185,7 +214,7 @@ public class Commands implements CommandExecutor {
                 commandSender.sendMessage(ChatColor.GREEN + "Permissions have been reloaded.");
                 return true;
             case "default":
-                return defaultGroup(commandSender,args);
+                return defaultGroup(commandSender, args);
             case "user":
                 return user(commandSender, args);
             case "group":
@@ -199,32 +228,35 @@ public class Commands implements CommandExecutor {
     }
 
     private boolean removeGroup(@NotNull OfflinePlayer p, String arg, CommandSender sender) {
+        sender.sendMessage(header);
         List<String> groups;
-            groups = main.getConfig().getStringList("users." + p.getName() + ".groups");
-            groups.remove(arg);
-            main.getConfig().set("users." + p.getName() + ".groups", groups);
-            sender.sendMessage("§2Removed player §a" + p.getName() + "§2 from group §a" + arg + "§2.");
-            main.reloadPermissions();
+        groups = main.getConfig().getStringList("users." + p.getName() + ".groups");
+        groups.remove(arg);
+        main.getConfig().set("users." + p.getName() + ".groups", groups);
+        sender.sendMessage("§2Removed player §a" + p.getName() + "§2 from group §a" + arg + "§2.");
+        main.reloadPermissions();
         return true;
     }
 
     private boolean removeGroupPermission(String group, String arg, CommandSender sender) {
+        sender.sendMessage(header);
         List<String> perms;
         perms = main.getConfig().getStringList("groups." + group + ".permissions");
         perms.remove(arg);
-        main.getConfig().set("users." + group + ".permissions", perms);
+        main.getConfig().set("groups." + group + ".permissions", perms);
         sender.sendMessage("§2Removed permission §a" + arg + "§2 from group §a" + group + "§2.");
         main.reloadPermissions();
         return true;
     }
 
     private boolean removePermission(@Nullable OfflinePlayer p, String arg, CommandSender sender) {
+        sender.sendMessage(header);
         List<String> perms;
         if (p == null) {
-            perms = main.getConfig().getStringList("permissions");
+            perms = main.getConfig().getStringList("default.permissions");
             perms.remove(arg);
-            main.getConfig().set("permissions", perms);
-            sender.sendMessage("§Removed permission §a" + arg + "§2 from §aall players§2.");
+            main.getConfig().set("default.permissions", perms);
+            sender.sendMessage("§2Removed permission §a" + arg + "§2 from §aall players§2.");
         } else {
             perms = main.getConfig().getStringList("users." + p.getName() + ".permissions");
             perms.remove(arg);
@@ -240,6 +272,7 @@ public class Commands implements CommandExecutor {
     }
 
     void usage(CommandSender s, String p) {
+        s.sendMessage(header);
         switch (p) {
             case "":
                 s.sendMessage("§3LightPerms commands: §b/lp ...");
@@ -302,7 +335,7 @@ public class Commands implements CommandExecutor {
             case "removegroup":
                 return removeGroup(p, args[2], sender);
         }
-        usage(sender,"user");
+        usage(sender, "user");
         return true;
     }
 }

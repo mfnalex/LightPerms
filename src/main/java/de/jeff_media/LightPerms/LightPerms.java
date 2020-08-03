@@ -1,6 +1,7 @@
 package de.jeff_media.LightPerms;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 import de.jeff_media.PluginUpdateChecker.PluginUpdateChecker;
@@ -12,6 +13,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -86,12 +88,8 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 
 	void removePermissions() {
 		for (Player player : getServer().getOnlinePlayers()) {
-			if (player != null) {
-				PermissionAttachment attachment = perms.get(player.getUniqueId());
-				if(attachment != null) {
-					player.removeAttachment(attachment);
-				}
-			}
+			PermissionAttachment attachment = perms.get(player.getUniqueId());
+			player.removeAttachment(attachment);
 		}
 	}
 
