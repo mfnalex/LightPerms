@@ -3,9 +3,13 @@ package de.jeff_media.LightPerms;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import de.jeff_media.PluginUpdateChecker.PluginUpdateChecker;
+import org.apache.commons.lang.math.NumberUtils;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -21,6 +25,7 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 
 	HashMap<UUID, PermissionAttachment> perms;
 	PluginUpdateChecker updateChecker;
+	boolean isDamnOldBukkitVersion = false;
 
 	public void onEnable() {
 		saveDefaultConfig();
@@ -33,8 +38,25 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 
 		addPermsToOnlinePlayers();
 
+		if(getMcVersion() < 13) {
+			isDamnOldBukkitVersion = true;
+		}
+
 		@SuppressWarnings("unused")
 		Metrics metrics = new Metrics(this,3575);
+	}
+
+	// Returns 16 for 1.16, etc.
+	static int getMcVersion() {
+		String bukkitVersionString = Bukkit.getBukkitVersion();
+		Pattern p = Pattern.compile("^1\\.(\\d*)\\.");
+		Matcher m = p.matcher((bukkitVersionString));
+		int version = -1;
+		while(m.find()) {
+			if(NumberUtils.isNumber(m.group(1)))
+				version = Integer.parseInt(m.group(1));
+		}
+		return version;
 	}
 
 	private void addPermsToOnlinePlayers() {
@@ -67,6 +89,9 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 		}
 
 		perms.put(p.getUniqueId(), attachment);
+		if(!isDamnOldBukkitVersion) {
+			p.updateCommands();
+		}
 	}
 
 	@EventHandler
