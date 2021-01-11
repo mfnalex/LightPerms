@@ -120,6 +120,10 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 
 	void reloadPermissions() {
 		saveConfig();
+		reloadPermissionsWithoutSaving();
+	}
+
+	void reloadPermissionsWithoutSaving() {
 		removePermissions();
 		reloadConfig();
 		addPermsToOnlinePlayers();

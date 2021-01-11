@@ -1,13 +1,14 @@
-permissions:
-- lightperms.reload
-- chestsort.use
-- chestsort.use.inventory
-- angelchest.use
-- angelchest.xp
-- angelchest.protect
-- invunload.use
-- invunload.search
-- besttools.use
-- besttools.refill
-- lumberjack.use
-- drop2inventory.use
+default:
+  permissions:
+    - angelchest.use # allows all players to use AngelChest
+    - angelchest.use.protect # protect all AngelChests for all players
+groups:
+  vip:
+    permissions:
+      - angelchest.tp # only VIPs can teleport to their AngelChests
+users:
+  exampleplayer1:
+    groups:
+      - vip # exampleplayer1 has access to all permissions in the "vip" group
+    permissions:
+      - essentials.ping # exampleplayer1 can also use the Essentials /ping command

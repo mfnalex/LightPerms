@@ -210,7 +210,7 @@ public class Commands implements CommandExecutor {
 
         switch (args[0].toLowerCase()) {
             case "reload":
-                main.reloadPermissions();
+                main.reloadPermissionsWithoutSaving();
                 commandSender.sendMessage(ChatColor.GREEN + "Permissions have been reloaded.");
                 return true;
             case "default":
