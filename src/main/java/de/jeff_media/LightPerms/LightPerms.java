@@ -23,110 +23,114 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class LightPerms extends JavaPlugin implements Listener, CommandExecutor {
 
-	HashMap<UUID, PermissionAttachment> perms;
-	PluginUpdateChecker updateChecker;
-	boolean isDamnOldBukkitVersion = false;
+    HashMap<UUID, PermissionAttachment> perms;
+    PluginUpdateChecker updateChecker;
+    boolean isDamnOldBukkitVersion = false;
 
-	public void onEnable() {
-		saveDefaultConfig();
-		updateChecker = new PluginUpdateChecker(this,"https://api.jeff-media.de/lightperms/latest-version.txt","https://www.spigotmc.org/resources/1-8-1-16-lightperms.62447/",null,"https://chestsort.de/donate");
-		updateChecker.check(4*60*60);
-		perms = new HashMap<>();
-		getServer().getPluginManager().registerEvents(this, this);
-		getCommand("lp").setTabCompleter(new TabCompleter());
-		getCommand("lp").setExecutor(new Commands(this));
+    public void onEnable() {
+        saveDefaultConfig();
+        updateChecker = new PluginUpdateChecker(this, "https://api.jeff-media.de/lightperms/latest-version.txt", "https://www.spigotmc.org/resources/1-8-1-16-lightperms.62447/", null, "https://chestsort.de/donate");
+        updateChecker.check(4 * 60 * 60);
+        perms = new HashMap<>();
+        getServer().getPluginManager().registerEvents(this, this);
+        getCommand("lp").setTabCompleter(new TabCompleter());
+        getCommand("lp").setExecutor(new Commands(this));
 
-		addPermsToOnlinePlayers();
+        addPermsToOnlinePlayers();
 
-		if(getMcVersion() < 13) {
-			isDamnOldBukkitVersion = true;
-		}
+        if (getMcVersion() < 13) {
+            isDamnOldBukkitVersion = true;
+        }
 
-		@SuppressWarnings("unused")
-		Metrics metrics = new Metrics(this,3575);
-	}
+        @SuppressWarnings("unused")
+        Metrics metrics = new Metrics(this, 3575);
+    }
 
-	// Returns 16 for 1.16, etc.
-	static int getMcVersion() {
-		String bukkitVersionString = Bukkit.getBukkitVersion();
-		Pattern p = Pattern.compile("^1\\.(\\d*)\\.");
-		Matcher m = p.matcher((bukkitVersionString));
-		int version = -1;
-		while(m.find()) {
-			if(NumberUtils.isNumber(m.group(1)))
-				version = Integer.parseInt(m.group(1));
-		}
-		return version;
-	}
+    // Returns 16 for 1.16, etc.
+    static int getMcVersion() {
+        String bukkitVersionString = Bukkit.getBukkitVersion();
+        Pattern p = Pattern.compile("^1\\.(\\d*)\\.");
+        Matcher m = p.matcher((bukkitVersionString));
+        int version = -1;
+        while (m.find()) {
+            if (NumberUtils.isNumber(m.group(1)))
+                version = Integer.parseInt(m.group(1));
+        }
+        return version;
+    }
 
-	private void addPermsToOnlinePlayers() {
-		for (Player player : getServer().getOnlinePlayers()) {
-			if (player != null)
-				addPermissions(player);
-		}
-	}
+    private void addPermsToOnlinePlayers() {
+        for (Player player : getServer().getOnlinePlayers()) {
+            if (player != null)
+                addPermissions(player);
+        }
+    }
 
-	void debug(String text) {
-		getLogger().warning(text);
-	}
+    void debug(String text) {
+        getLogger().warning(text);
+    }
 
 
-	public void addPermissions(Player p) {
-		PermissionAttachment attachment = p.addAttachment(this);
+    public void addPermissions(Player p) {
+        PermissionAttachment attachment = p.addAttachment(this);
 
-		for(String permission : getConfig().getStringList("default.permissions")) {
-			attachment.setPermission(permission, true);
-		}
-		for(String name : getConfig().getConfigurationSection("users").getKeys(false)) {
-			for(String group : getConfig().getStringList("users."+name+".groups")) {
-				for(String perm : getConfig().getStringList("groups."+group+".permissions")) {
-					attachment.setPermission(perm,true);
-				}
-			}
-			for(String perm : getConfig().getStringList("users."+name+".permissions")) {
-				attachment.setPermission(perm, true);
-			}
-		}
+        for (String permission : getConfig().getStringList("default.permissions")) {
+            attachment.setPermission(permission, true);
+            //System.out.println("Adding " + permission + " to " + p.getName() + " because default");
+        }
 
-		perms.put(p.getUniqueId(), attachment);
-		if(!isDamnOldBukkitVersion) {
-			p.updateCommands();
-		}
-	}
+        for (String group : getConfig().getStringList("users." + p.getName() + ".groups")) {
+            System.out.println("User " + p.getName() + " is in group " + group);
+            for (String perm : getConfig().getStringList("groups." + group + ".permissions")) {
+                attachment.setPermission(perm, true);
+                //System.out.println(" Adding " + perm + " to " + p.getName() + " because group " + group);
+            }
+        }
+        for (String perm : getConfig().getStringList("users." + p.getName() + ".permissions")) {
+            attachment.setPermission(perm, true);
+            //System.out.println("Adding " + perm + " to " + p.getName() + " because player");
+        }
 
-	@EventHandler
-	public void onPlayerJoin(PlayerJoinEvent event) {
-		addPermissions(event.getPlayer());
-	}
 
-	@EventHandler
-	public void onPlayerQuit(PlayerQuitEvent event) {
-		event.getPlayer().removeAttachment(perms.get(event.getPlayer().getUniqueId()));
-	}
+        perms.put(p.getUniqueId(), attachment);
+        if (!isDamnOldBukkitVersion) {
+            p.updateCommands();
+        }
+    }
 
-	public void onDisable() {
-		updateChecker.stop();
-		removePermissions();
-		saveConfig();
-		HandlerList.unregisterAll((Listener) this);
-	}
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        addPermissions(event.getPlayer());
+    }
 
-	void removePermissions() {
-		for (Player player : getServer().getOnlinePlayers()) {
-			PermissionAttachment attachment = perms.get(player.getUniqueId());
-			player.removeAttachment(attachment);
-		}
-	}
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        event.getPlayer().removeAttachment(perms.get(event.getPlayer().getUniqueId()));
+    }
 
-	void reloadPermissions() {
-		saveConfig();
-		reloadPermissionsWithoutSaving();
-	}
+    public void onDisable() {
+        updateChecker.stop();
+        removePermissions();
+        saveConfig();
+        HandlerList.unregisterAll((Listener) this);
+    }
 
-	void reloadPermissionsWithoutSaving() {
-		removePermissions();
-		reloadConfig();
-		addPermsToOnlinePlayers();
-	}
+    void removePermissions() {
+        for (Player player : getServer().getOnlinePlayers()) {
+            PermissionAttachment attachment = perms.get(player.getUniqueId());
+            player.removeAttachment(attachment);
+        }
+    }
+
+    void reloadPermissions() {
+        saveConfig();
+        reloadPermissionsWithoutSaving();
+    }
+
+    void reloadPermissionsWithoutSaving() {
+        removePermissions();
+        reloadConfig();
+        addPermsToOnlinePlayers();
+    }
 
 }
