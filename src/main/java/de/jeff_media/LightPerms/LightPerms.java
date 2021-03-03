@@ -25,7 +25,6 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 
     HashMap<UUID, PermissionAttachment> perms;
     PluginUpdateChecker updateChecker;
-    boolean isDamnOldBukkitVersion = false;
 
     public void onEnable() {
         saveDefaultConfig();
@@ -37,10 +36,6 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
         getCommand("lp").setExecutor(new Commands(this));
 
         addPermsToOnlinePlayers();
-
-        if (getMcVersion() < 13) {
-            isDamnOldBukkitVersion = true;
-        }
 
         @SuppressWarnings("unused")
         Metrics metrics = new Metrics(this, 3575);
@@ -93,7 +88,7 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 
 
         perms.put(p.getUniqueId(), attachment);
-        if (!isDamnOldBukkitVersion) {
+        if (getMcVersion()>=13) {
             p.updateCommands();
         }
     }
