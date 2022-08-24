@@ -129,7 +129,14 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
-        event.getPlayer().removeAttachment(perms.get(event.getPlayer().getUniqueId()));
+        PermissionAttachment attachment = perms.get(event.getPlayer().getUniqueId());
+        if(attachment != null) {
+            try {
+                event.getPlayer().removeAttachment(attachment);
+            } catch (Throwable ignored) {
+
+            }
+        }
     }
 
     public void onDisable() {
