@@ -354,6 +354,7 @@ public class Commands implements CommandExecutor {
                 s.sendMessage("§3- §bremove <permission> §3- remove permission from a group");
                 s.sendMessage("§3- §baddmember <user> §3- add user to a group");
                 s.sendMessage("§3- §bremovemember <user> §3- remove user from a group");
+                s.sendMessage("§3- §bfamily §3- show parents/children of a group");
                 s.sendMessage("§3- §baddparent <group> §3- add parent group to group");
                 s.sendMessage("§3- §bremoveparent <group> §3- remove parent group to group");
                 break;
