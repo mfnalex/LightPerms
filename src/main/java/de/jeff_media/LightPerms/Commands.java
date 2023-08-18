@@ -119,6 +119,10 @@ public class Commands implements CommandExecutor {
                 return addGroupPermission(args[0], args[2], sender);
             case "remove":
                 return removeGroupPermission(args[0], args[2], sender);
+            case "addparent":
+                return addGroupParent();
+            case "removeparent" || "remparent":
+                return removeGroupParent()
         }
 
         if (args[1].equalsIgnoreCase("addmember") || args[1].equalsIgnoreCase("removemember")) {
@@ -303,6 +307,8 @@ public class Commands implements CommandExecutor {
                 s.sendMessage("§3- §bremove <permission> §3- remove permission from a group");
                 s.sendMessage("§3- §baddmember <user> §3- add user to a group");
                 s.sendMessage("§3- §bremovemember <user> §3- remove user from a group");
+                s.sendMessage("§3- §baddparent <group> §3- add parent group to group");
+                s.sendMessage("§3- §bremoveparent <group> §3- remove parent group to group");
                 break;
         }
     }
