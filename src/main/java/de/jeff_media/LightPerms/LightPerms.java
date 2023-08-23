@@ -3,7 +3,6 @@ package de.jeff_media.LightPerms;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -21,7 +20,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.permissions.Permission;
 import org.bukkit.permissions.PermissionAttachment;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -36,7 +34,7 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
 
         perms = new HashMap<>();
         getServer().getPluginManager().registerEvents(this, this);
-        getCommand("lp").setTabCompleter(new TabCompleter());
+        getCommand("lp").setTabCompleter(new TabCompleter(this));
         getCommand("lp").setExecutor(new Commands(this));
 
         addPermsToOnlinePlayers();
@@ -94,7 +92,6 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
         getLogger().warning(text);
     }
 
-
     public void addPermissions(Player p) {
         PermissionAttachment attachment = p.addAttachment(this);
 
@@ -109,12 +106,17 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
                 attachment.setPermission(perm, true);
                 //System.out.println(" Adding " + perm + " to " + p.getName() + " because group " + group);
             }
+            for (String parent : getConfig().getStringList("groups." + group + ".parents"))
+                for (String perm : getConfig().getStringList("groups." + parent + ".permissions")) {
+                    attachment.setPermission(perm, true);
+                    //System.out.println(" Adding " + perm + " to " + p.getName() + " because group " + group);
+                }
         }
+
         for (String perm : getConfig().getStringList("users." + p.getName() + ".permissions")) {
             attachment.setPermission(perm, true);
             //System.out.println("Adding " + perm + " to " + p.getName() + " because player");
         }
-
 
         perms.put(p.getUniqueId(), attachment);
         if (getMcVersion()>=13) {

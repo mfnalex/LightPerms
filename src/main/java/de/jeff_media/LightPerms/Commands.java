@@ -9,6 +9,7 @@ import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -34,6 +35,19 @@ public class Commands implements CommandExecutor {
         main.getConfig().set("users." + p.getName() + ".groups", groups);
         sender.sendMessage("§2Added player §a" + p.getName() + "§2 to group §a" + arg + "§2.");
         main.reloadPermissions();
+        return true;
+    }
+
+    private boolean addGroupParent(String group, String arg, CommandSender sender) {
+        List<String> parents = main.getConfig().getStringList("groups." + group + ".parents");
+        if (!parents.contains(arg)) {
+            parents.add(arg);
+            main.getConfig().set("groups." + group + ".parents", parents);
+            sender.sendMessage("§2Group §a"+group+"§2 now has parent §a"+arg+"§2.");
+            main.reloadPermissions();
+            return true;
+        }
+        sender.sendMessage("§2Group §a"+group+"§2 already has parent §a"+arg+"§2.");
         return true;
     }
 
@@ -107,8 +121,11 @@ public class Commands implements CommandExecutor {
             usage(sender, "group");
             return true;
         }
-        if (args.length > 1 && args[1].equalsIgnoreCase("info")) {
+        if ((args.length > 1 && args[1].equalsIgnoreCase("info")) || args.length == 1) {
             return listGroupPermissions(args, sender);
+        }
+        if (args[1].equalsIgnoreCase("family")) {
+            return listFamily(sender, args[0]);
         }
         if (args.length < 3) {
             usage(sender, "group");
@@ -119,6 +136,10 @@ public class Commands implements CommandExecutor {
                 return addGroupPermission(args[0], args[2], sender);
             case "remove":
                 return removeGroupPermission(args[0], args[2], sender);
+            case "addparent":
+                return addGroupParent(args[0], args[2], sender);
+            case "removeparent":
+                return removeGroupParent(args[0], args[2], sender);
         }
 
         if (args[1].equalsIgnoreCase("addmember") || args[1].equalsIgnoreCase("removemember")) {
@@ -155,11 +176,12 @@ public class Commands implements CommandExecutor {
             sender.sendMessage("§3- §a" + perm);
         }
         sender.sendMessage("§3Members: ");
-        for (String user : main.getConfig().getConfigurationSection("users").getKeys(false)) {
+        List<String> members = new ArrayList<>();
+        for (String user : main.getConfig().getConfigurationSection("users").getKeys(false))
             if (main.getConfig().getStringList("users." + user + ".groups").contains(args[0])) {
-                sender.sendMessage("§3- §a" + user);
+                members.add(user);
             }
-        }
+        sender.sendMessage("§a" + members);
         return true;
     }
 
@@ -179,6 +201,22 @@ public class Commands implements CommandExecutor {
             }
             sender.sendMessage("§3- §a" + group + " §3(" + perms+" permissions, "+ users + " members)");
         }
+        return true;
+    }
+
+    private boolean listFamily(CommandSender sender, String group)  {
+        sender.sendMessage(header);
+        sender.sendMessage("§3Group: §a" + group);
+        sender.sendMessage("§3Children: ");
+        List<String> children = new ArrayList<>();
+        for (String g : main.getConfig().getConfigurationSection("groups").getKeys(false)) {
+            if (main.getConfig().getStringList("groups."+g+".parents").contains(group))
+                children.add(g);
+        }
+        sender.sendMessage("§a" + children);
+        sender.sendMessage("§3Parents: ");
+        List<String> parents = main.getConfig().getStringList("groups."+group+".parents");
+        sender.sendMessage("§a" + parents);
         return true;
     }
 
@@ -235,6 +273,19 @@ public class Commands implements CommandExecutor {
         main.getConfig().set("users." + p.getName() + ".groups", groups);
         sender.sendMessage("§2Removed player §a" + p.getName() + "§2 from group §a" + arg + "§2.");
         main.reloadPermissions();
+        return true;
+    }
+
+    private boolean removeGroupParent(String group, String arg, CommandSender sender) {
+        List<String> parents = main.getConfig().getStringList("groups." + group + ".parents");
+        if (parents.contains(arg)) {
+            parents.remove(arg);
+            main.getConfig().set("groups." + group + ".parents", parents);
+            sender.sendMessage("§2Group §a"+group+"§2 no longer has parent §a"+arg+"§2.");
+            main.reloadPermissions();
+            return true;
+        }
+        sender.sendMessage("§2Group §a"+group+"§2 doesn't have parent §a"+arg+"§2.");
         return true;
     }
 
@@ -303,6 +354,9 @@ public class Commands implements CommandExecutor {
                 s.sendMessage("§3- §bremove <permission> §3- remove permission from a group");
                 s.sendMessage("§3- §baddmember <user> §3- add user to a group");
                 s.sendMessage("§3- §bremovemember <user> §3- remove user from a group");
+                s.sendMessage("§3- §bfamily §3- show parents/children of a group");
+                s.sendMessage("§3- §baddparent <group> §3- add parent group to group");
+                s.sendMessage("§3- §bremoveparent <group> §3- remove parent group to group");
                 break;
         }
     }
