@@ -28,6 +28,7 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
     HashMap<UUID, PermissionAttachment> perms;
     YamlConfiguration updateCheckerYaml = new YamlConfiguration();
 
+    @Override
     public void onEnable() {
         saveDefaultConfig();
         initUpdateChecker();
@@ -96,14 +97,14 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
         PermissionAttachment attachment = p.addAttachment(this);
 
         for (String permission : getConfig().getStringList("default.permissions")) {
-            attachment.setPermission(permission, true);
+            addPermission(attachment, permission);
             //System.out.println("Adding " + permission + " to " + p.getName() + " because default");
         }
 
         for (String group : getConfig().getStringList("users." + p.getName() + ".groups")) {
             System.out.println("User " + p.getName() + " is in group " + group);
             for (String perm : getConfig().getStringList("groups." + group + ".permissions")) {
-                attachment.setPermission(perm, true);
+                addPermission(attachment, perm);
                 //System.out.println(" Adding " + perm + " to " + p.getName() + " because group " + group);
             }
             for (String parent : getConfig().getStringList("groups." + group + ".parents"))
@@ -114,7 +115,7 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
         }
 
         for (String perm : getConfig().getStringList("users." + p.getName() + ".permissions")) {
-            attachment.setPermission(perm, true);
+            addPermission(attachment, perm);
             //System.out.println("Adding " + perm + " to " + p.getName() + " because player");
         }
 
@@ -122,6 +123,14 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
         if (getMcVersion()>=13) {
             p.updateCommands();
         }
+    }
+
+    private void addPermission(PermissionAttachment attachment, String permission) {
+        boolean positive = !permission.startsWith("-");
+        if (!positive) {
+            permission = permission.substring(1);
+        }
+        attachment.setPermission(permission, positive);
     }
 
     @EventHandler
@@ -141,6 +150,7 @@ public class LightPerms extends JavaPlugin implements Listener, CommandExecutor 
         }
     }
 
+    @Override
     public void onDisable() {
         removePermissions();
         saveConfig();
