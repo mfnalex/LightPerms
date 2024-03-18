@@ -44,8 +44,7 @@ public class TabCompleter implements org.bukkit.command.TabCompleter {
                 if(args.length==3) return Arrays.asList(user);
                 return null;
             case "group":
-                List<String> groups = new ArrayList<>();
-                groups.addAll(main.getConfig().getConfigurationSection("groups").getKeys(false));
+                List<String> groups = new ArrayList<>(main.getConfig().getConfigurationSection("groups").getKeys(false));
                 if(args.length==2) return groups;
                 if(args.length==3) return Arrays.asList(group);
                 return null;
